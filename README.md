@@ -14,7 +14,7 @@ Click any link below to test the corresponding route in your browser:
 2. **Galleries**
    - https://cuddly-shorthaired-son.glitch.me/galleries
    - https://cuddly-shorthaired-son.glitch.me/galleries/30
-   - - https://cuddly-shorthaired-son.glitch.me/galleries/Calgary
+   - https://cuddly-shorthaired-son.glitch.me/galleries/Calgary
    - https://cuddly-shorthaired-son.glitch.me/galleries/country/fra
 
 3. **Artists**
