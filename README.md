@@ -4,10 +4,6 @@
 
 This is my Node-based API for the paintings/artists database assignment. It uses [Supabase](https://supabase.com/) for data storage and [Express.js](https://expressjs.com/) for handling API routes.
 
-## Deployed API
-
-**Base URL:** https://cuddly-shorthaired-son.glitch.me
-
 ## Endpoints
 
 Click any link below to test the corresponding route in your browser:
