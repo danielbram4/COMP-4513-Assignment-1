@@ -1,5 +1,3 @@
-# COMP-4513-Assignment-1
-
 # COMP 4513 – Assignment 1
 
 This is my Node-based API for the paintings/artists database assignment. It uses [Supabase](https://supabase.com/) for data storage and [Express.js](https://expressjs.com/) for handling API routes.
