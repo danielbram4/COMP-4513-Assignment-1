@@ -13,12 +13,12 @@ This is my Node-based API for the paintings/artists database assignment. It uses
 Click any link below to test the corresponding route in your browser:
 
 1. **Eras**
-   - [All eras](https://cuddly-shorthaired-son.glitch.me/eras)
+   - https://cuddly-shorthaired-son.glitch.me/eras
 
 2. **Galleries**
-   - [All galleries](https://cuddly-shorthaired-son.glitch.me/galleries)
-   - [Gallery by ID (example: 30)](https://cuddly-shorthaired-son.glitch.me/galleries/30)
-   - [Galleries by country begins with "fra"](https://cuddly-shorthaired-son.glitch.me/galleries/country/fra)
+   - https://cuddly-shorthaired-son.glitch.me/galleries
+   - https://cuddly-shorthaired-son.glitch.me/galleries/30
+   - https://cuddly-shorthaired-son.glitch.me/galleries/country/fra
 
 3. **Artists**
    - [All artists](https://cuddly-shorthaired-son.glitch.me/artists)
