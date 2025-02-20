@@ -10,7 +10,6 @@ const supabase = supa.createClient(supaUrl, supaAnonKey);
 
 app.use(express.json());
 
-// Helper function to handle sending data or a 404 error
 function sendResponse(res, data, notFoundMsg = "Not Found") {
   if (!data || data.length === 0) {
     return res.status(404).json({ error: notFoundMsg });
@@ -18,29 +17,27 @@ function sendResponse(res, data, notFoundMsg = "Not Found") {
   res.json(data);
 }
 
-// -------------------------------------------------------
-// 1) ERAS
-// -------------------------------------------------------
+// Returns all eras
 app.get("/eras", async (req, res) => {
   const { data, error } = await supabase.from("eras").select("*");
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, "No eras found.");
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: "No eras found." });
+  res.json(data);
 });
 
-// -------------------------------------------------------
-// 2) GALLERIES
-// -------------------------------------------------------
-
-// (a) All galleries
+// Returns all galleries
 app.get("/galleries", async (req, res) => {
   const { data, error } = await supabase.from("galleries").select("*");
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, "No galleries found.");
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: "No galleries found." });
+  res.json(data);
 });
 
-// (b) Gallery by ID
+// Returns a gallery by ID
 app.get("/galleries/:id", async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
@@ -49,10 +46,12 @@ app.get("/galleries/:id", async (req, res) => {
     .eq("galleryId", id);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, `No gallery found with ID ${id}.`);
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: `No gallery found with ID ${id}.` });
+  res.json(data);
 });
 
-// (c) Galleries by Country (case-insensitive, begins with)
+// Returns galleries whose country begins with substring
 app.get("/galleries/country/:substring", async (req, res) => {
   const { substring } = req.params;
   const { data, error } = await supabase
@@ -61,26 +60,25 @@ app.get("/galleries/country/:substring", async (req, res) => {
     .ilike("galleryCountry", `${substring}%`);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(
-    res,
-    data,
-    `No galleries found whose country begins with '${substring}'.`
-  );
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No galleries found whose country begins with '${substring}'.`,
+    });
+  }
+  res.json(data);
 });
 
-// -------------------------------------------------------
-// 3) ARTISTS
-// -------------------------------------------------------
-
-// (a) All artists
+// Returns all artists
 app.get("/artists", async (req, res) => {
   const { data, error } = await supabase.from("artists").select("*");
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, "No artists found.");
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: "No artists found." });
+  res.json(data);
 });
 
-// (b) Artist by ID
+// Returns an artist by ID
 app.get("/artists/:id", async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
@@ -89,10 +87,12 @@ app.get("/artists/:id", async (req, res) => {
     .eq("artistId", id);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, `No artist found with ID ${id}.`);
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: `No artist found with ID ${id}.` });
+  res.json(data);
 });
 
-// (c) Artists whose lastName begins with substring (case-insensitive)
+// Returns artists whose last name begins with substring
 app.get("/artists/search/:substring", async (req, res) => {
   const { substring } = req.params;
   const { data, error } = await supabase
@@ -101,14 +101,15 @@ app.get("/artists/search/:substring", async (req, res) => {
     .ilike("lastName", `${substring}%`);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(
-    res,
-    data,
-    `No artists found whose last name begins with '${substring}'.`
-  );
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No artists found whose last name begins with '${substring}'.`,
+    });
+  }
+  res.json(data);
 });
 
-// (d) Artists by nationality begins with substring (case-insensitive)
+// Returns artists whose nationality begins with substring
 app.get("/artists/country/:substring", async (req, res) => {
   const { substring } = req.params;
   const { data, error } = await supabase
@@ -117,20 +118,15 @@ app.get("/artists/country/:substring", async (req, res) => {
     .ilike("nationality", `${substring}%`);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(
-    res,
-    data,
-    `No artists found whose nationality begins with '${substring}'.`
-  );
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No artists found whose nationality begins with '${substring}'.`,
+    });
+  }
+  res.json(data);
 });
 
-// -------------------------------------------------------
-// 4) PAINTINGS
-// -------------------------------------------------------
-
-// (a) All paintings
-//     Return all painting fields plus all artist fields plus all gallery fields.
-//     Sort by title by default.
+// Returns all paintings (with artist and gallery), sorted by title
 app.get("/paintings", async (req, res) => {
   const { data, error } = await supabase
     .from("paintings")
@@ -141,19 +137,19 @@ app.get("/paintings", async (req, res) => {
       galleries (*)
     `
     )
-    .order("title", { ascending: true }); // default sort
+    .order("title", { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, "No paintings found.");
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: "No paintings found." });
+  res.json(data);
 });
 
-// (b) Sort paintings by title or yearOfWork
+// Returns all paintings sorted by title or yearOfWork
 app.get("/paintings/sort/:sortParam", async (req, res) => {
   const { sortParam } = req.params;
   if (!["title", "yearOfWork"].includes(sortParam)) {
-    return res
-      .status(400)
-      .json({ error: "Invalid sort parameter. Use 'title' or 'yearOfWork'." });
+    return res.status(400).json({ error: "Invalid sort parameter." });
   }
 
   const { data, error } = await supabase
@@ -168,10 +164,12 @@ app.get("/paintings/sort/:sortParam", async (req, res) => {
     .order(sortParam, { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, "No paintings found.");
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: "No paintings found." });
+  res.json(data);
 });
 
-// (c) Specific painting by ID
+// Returns a painting by ID
 app.get("/paintings/:id", async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
@@ -186,10 +184,13 @@ app.get("/paintings/:id", async (req, res) => {
     .eq("paintingId", id);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, `No painting found with ID ${id}.`);
+  if (!data || data.length === 0) {
+    return res.status(404).json({ error: `No painting found with ID ${id}.` });
+  }
+  res.json(data);
 });
 
-// (d) Search paintings by title (case-insensitive substring)
+// Returns paintings whose title contains substring
 app.get("/paintings/search/:substring", async (req, res) => {
   const { substring } = req.params;
   const { data, error } = await supabase
@@ -205,23 +206,19 @@ app.get("/paintings/search/:substring", async (req, res) => {
     .order("title", { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(
-    res,
-    data,
-    `No paintings found whose title contains '${substring}'.`
-  );
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No paintings found whose title contains '${substring}'.`,
+    });
+  }
+  res.json(data);
 });
 
-// (e) Paintings between two years (inclusive), sorted by yearOfWork
+// Returns paintings between start and end years, sorted by yearOfWork
 app.get("/paintings/years/:start/:end", async (req, res) => {
   const { start, end } = req.params;
-  const startNum = parseInt(start, 10);
-  const endNum = parseInt(end, 10);
-
-  if (endNum < startNum) {
-    return res
-      .status(400)
-      .json({ error: "End year must be greater than or equal to start year." });
+  if (parseInt(end) < parseInt(start)) {
+    return res.status(400).json({ error: "End year must be >= start year." });
   }
 
   const { data, error } = await supabase
@@ -233,23 +230,22 @@ app.get("/paintings/years/:start/:end", async (req, res) => {
       galleries (*)
     `
     )
-    .gte("yearOfWork", startNum)
-    .lte("yearOfWork", endNum)
+    .gte("yearOfWork", start)
+    .lte("yearOfWork", end)
     .order("yearOfWork", { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(
-    res,
-    data,
-    `No paintings found between years ${start} and ${end}.`
-  );
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No paintings found between ${start} and ${end}.`,
+    });
+  }
+  res.json(data);
 });
 
-// (f) Paintings by gallery ID
-app.get("/paintings/galleries/:galleryId", async (req, res) => {
-  const { galleryId } = req.params;
-
-  // Return all painting fields, plus artist & gallery details, sorted by title
+// Returns paintings in a given gallery
+app.get("/paintings/galleries/:id", async (req, res) => {
+  const { id } = req.params;
   const { data, error } = await supabase
     .from("paintings")
     .select(
@@ -259,18 +255,21 @@ app.get("/paintings/galleries/:galleryId", async (req, res) => {
       galleries!inner(*)
     `
     )
-    .eq("galleryId", galleryId)
+    .eq("galleryId", id)
     .order("title", { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, `No paintings found for gallery ID ${galleryId}.`);
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No paintings found for gallery ID ${id}.`,
+    });
+  }
+  res.json(data);
 });
 
-// (g) Paintings by artist ID
-app.get("/paintings/artist/:artistId", async (req, res) => {
-  const { artistId } = req.params;
-
-  // Return painting fields plus the joined artist data
+// Returns paintings by a given artist
+app.get("/paintings/artist/:id", async (req, res) => {
+  const { id } = req.params;
   const { data, error } = await supabase
     .from("paintings")
     .select(
@@ -280,18 +279,21 @@ app.get("/paintings/artist/:artistId", async (req, res) => {
       galleries(*)
     `
     )
-    .eq("artistId", artistId)
+    .eq("artistId", id)
     .order("yearOfWork", { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, `No paintings found for artist ID ${artistId}.`);
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No paintings found for artist ID ${id}.`,
+    });
+  }
+  res.json(data);
 });
 
-// (h) Paintings by artists whose nationality begins with substring
+// Returns paintings by artists whose nationality begins with substring
 app.get("/paintings/artist/country/:substring", async (req, res) => {
   const { substring } = req.params;
-
-  // We do an inner join to the artists table and filter on the artist's nationality
   const { data, error } = await supabase
     .from("paintings")
     .select(
@@ -305,18 +307,15 @@ app.get("/paintings/artist/country/:substring", async (req, res) => {
     .order("title", { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(
-    res,
-    data,
-    `No paintings found whose artist nationality begins with '${substring}'.`
-  );
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No paintings found whose artist nationality begins with '${substring}'.`,
+    });
+  }
+  res.json(data);
 });
 
-// -------------------------------------------------------
-// 5) GENRES
-// -------------------------------------------------------
-
-// (a) All genres + full era details
+// Returns all genres with their associated era
 app.get("/genres", async (req, res) => {
   const { data, error } = await supabase.from("genres").select(`
       *,
@@ -324,10 +323,12 @@ app.get("/genres", async (req, res) => {
     `);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, "No genres found.");
+  if (!data || data.length === 0)
+    return res.status(404).json({ error: "No genres found." });
+  res.json(data);
 });
 
-// (b) Genre by ID + full era details
+// Returns a genre by ID with its era
 app.get("/genres/:id", async (req, res) => {
   const { id } = req.params;
   const { data, error } = await supabase
@@ -341,15 +342,15 @@ app.get("/genres/:id", async (req, res) => {
     .eq("genreId", id);
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, `No genre found with ID ${id}.`);
+  if (!data || data.length === 0) {
+    return res.status(404).json({ error: `No genre found with ID ${id}.` });
+  }
+  res.json(data);
 });
 
-// (c) Genres used in a given painting (ordered by genreName ascending)
-app.get("/genres/painting/:paintingId", async (req, res) => {
-  const { paintingId } = req.params;
-
-  // paintingGenres is the link table. We select the joined genre data,
-  // and then order by the genre name
+// Returns genres for a specific painting
+app.get("/genres/painting/:id", async (req, res) => {
+  const { id } = req.params;
   const { data, error } = await supabase
     .from("paintingGenres")
     .select(
@@ -358,23 +359,21 @@ app.get("/genres/painting/:paintingId", async (req, res) => {
       genres(*)
     `
     )
-    .eq("paintingId", paintingId)
+    .eq("paintingId", id)
     .order("genreName", { ascending: true, foreignTable: "genres" });
 
   if (error) return res.status(500).json({ error: error.message });
-  sendResponse(res, data, `No genres found for painting ID ${paintingId}.`);
+  if (!data || data.length === 0) {
+    return res.status(404).json({
+      error: `No genres found for painting ID ${id}.`,
+    });
+  }
+  res.json(data);
 });
 
-// -------------------------------------------------------
-// 6) PAINTINGS BY GENRE OR ERA
-// -------------------------------------------------------
-
-// (a) Paintings for a given genre ID
-//     Only return paintingId, title, yearOfWork, sorted by yearOfWork
+// Returns paintings for a given genre
 app.get("/paintings/genre/:genreId", async (req, res) => {
   const { genreId } = req.params;
-
-  // We link paintingGenres to paintings:
   const { data, error } = await supabase
     .from("paintingGenres")
     .select(
@@ -390,30 +389,19 @@ app.get("/paintings/genre/:genreId", async (req, res) => {
     .order("yearOfWork", { ascending: true, foreignTable: "paintings" });
 
   if (error) return res.status(500).json({ error: error.message });
-
-  // If data is found, it will be an array of { paintings: {...} } objects.
-  // Flatten them out for clarity or just return as is.
   if (!data || data.length === 0) {
-    return res
-      .status(404)
-      .json({ error: `No paintings found for genre ID ${genreId}.` });
+    return res.status(404).json({
+      error: `No paintings found for genre ID ${genreId}.`,
+    });
   }
 
-  // Map to extract the painting object from each record
-  const paintings = data.map((record) => record.paintings);
+  const paintings = data.map((row) => row.paintings);
   res.json(paintings);
 });
 
-// (b) Paintings for a given era ID
-//     Only return paintingId, title, yearOfWork, sorted by yearOfWork
+// Returns paintings for a given era
 app.get("/paintings/era/:eraId", async (req, res) => {
   const { eraId } = req.params;
-
-  // We link the paintings table to the genres → era:
-  //   paintings -> paintingGenres -> genres -> eras
-  //   But the simplest approach is to query the painting table where
-  //   paintingGenres.genres.eraId = eraId
-  //   We'll do it via paintingGenres so we can join genres. Then we filter on genres.eraId.
   const { data, error } = await supabase
     .from("paintingGenres")
     .select(
@@ -430,47 +418,30 @@ app.get("/paintings/era/:eraId", async (req, res) => {
     .order("yearOfWork", { ascending: true, foreignTable: "paintings" });
 
   if (error) return res.status(500).json({ error: error.message });
-
   if (!data || data.length === 0) {
-    return res
-      .status(404)
-      .json({ error: `No paintings found for era ID ${eraId}.` });
+    return res.status(404).json({
+      error: `No paintings found for era ID ${eraId}.`,
+    });
   }
 
   const paintings = data.map((record) => record.paintings);
   res.json(paintings);
 });
 
-// -------------------------------------------------------
-// 7) COUNTS
-// -------------------------------------------------------
-
-// (a) /counts/genres
-//     Returns each genre name + number of paintings, sorted fewest to most
+// Returns each genre and its painting count (fewest to most)
 app.get("/counts/genres", async (req, res) => {
-  // We'll use the paintingGenres table (the many-to-many link),
-  // join the genres table to get genreName,
-  // group by genreId, and count.
-  const { data, error } = await supabase
-    .from("paintingGenres")
-    .select(
-      `
+  const { data, error } = await supabase.from("paintingGenres").select(`
       genreId,
       genres(
         genreName
       )
-    `,
-      { count: "exact" }
-    ) // we want the row count for grouping
-    .order("genreId", { ascending: true });
+    `);
 
   if (error) return res.status(500).json({ error: error.message });
   if (!data || data.length === 0) {
     return res.status(404).json({ error: "No genres/paintings found." });
   }
 
-  // We have a row per painting-genre combination. We want to reduce to
-  // { genreId, genreName, count } grouped by genreId.
   const countsMap = {};
   data.forEach((row) => {
     const gId = row.genreId;
@@ -481,19 +452,13 @@ app.get("/counts/genres", async (req, res) => {
     countsMap[gId].count += 1;
   });
 
-  // Convert to an array
   let result = Object.values(countsMap);
-  // Sort by count ascending (fewest to most)
   result.sort((a, b) => a.count - b.count);
-
   res.json(result);
 });
 
-// (b) /counts/artists
-//     Returns artist (firstName + lastName) + number of paintings, sorted most to fewest
+// Returns each artist and their painting count (most to fewest)
 app.get("/counts/artists", async (req, res) => {
-  // We'll use the paintings table, since each painting has exactly one artistId.
-  // Then join the artists table to get the name, group by artistId, count paintings.
   const { data, error } = await supabase.from("paintings").select(`
       artistId,
       artists!inner(
@@ -510,29 +475,24 @@ app.get("/counts/artists", async (req, res) => {
   const countsMap = {};
   data.forEach((row) => {
     const aId = row.artistId;
-    const fName = row.artists?.firstName || "";
-    const lName = row.artists?.lastName || "";
-    const fullName = fName + " " + lName;
+    const fullName =
+      (row.artists?.firstName || "") + " " + (row.artists?.lastName || "");
     if (!countsMap[aId]) {
-      countsMap[aId] = { artistId: aId, artistName: fullName, count: 0 };
+      countsMap[aId] = { artistId: aId, artistName: fullName.trim(), count: 0 };
     }
     countsMap[aId].count += 1;
   });
 
   let result = Object.values(countsMap);
-  // Sort by count descending (most to fewest)
   result.sort((a, b) => b.count - a.count);
-
   res.json(result);
 });
 
-// (c) /counts/topgenres/:min
-//     Show only genres with more than 'min' paintings, sorted by painting count (most to least)
+// Returns top genres with more than :min paintings
 app.get("/counts/topgenres/:min", async (req, res) => {
   const { min } = req.params;
   const minNum = parseInt(min, 10);
 
-  // Same logic as /counts/genres, but we filter out counts < min
   const { data, error } = await supabase.from("paintingGenres").select(`
       genreId,
       genres(
@@ -542,9 +502,7 @@ app.get("/counts/topgenres/:min", async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
   if (!data || data.length === 0) {
-    return res
-      .status(404)
-      .json({ error: "No genres/paintings found in the database." });
+    return res.status(404).json({ error: "No genres/paintings found." });
   }
 
   const countsMap = {};
@@ -569,7 +527,6 @@ app.get("/counts/topgenres/:min", async (req, res) => {
 
   res.json(result);
 });
-
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
